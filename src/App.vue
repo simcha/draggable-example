@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <div class="jumbotron logo">
-       <img src="./assets/logo.png">
-    </div>  
     <hello></hello>
   </div>
 </template>

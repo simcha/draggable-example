@@ -1,49 +1,29 @@
-<template>
-  <div class="fluid container">
-    <div class="form-group form-group-lg panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Sortbale control</h3>
-      </div>
-      <div class="panel-body">
-        <div class = "checkbox">
-          <label><input type = "checkbox" v-model="editable">Enable drag and drop</label>      
-        </div>
-        <button type="button" class="btn btn-default" @click="orderList">Sort by original order</button>
-      </div>
-    </div>
-
-    <div  class="col-md-3">
-        <draggable class="list-group" element="ul" v-model="list" :options="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=false"> 
-          <transition-group type="transition" :name="'flip-list'">
-            <li class="list-group-item" v-for="element in list" :key="element.order"> 
-              <i :class="element.fixed? 'fa fa-anchor' : 'glyphicon glyphicon-pushpin'" @click=" element.fixed=! element.fixed" aria-hidden="true"></i>
-              {{element.name}}
-              <span class="badge">{{element.order}}</span>
-            </li> 
-          </transition-group>
-      </draggable>
-    </div>
-
-     <div  class="col-md-3">
-      <draggable element="span" v-model="list2" :options="dragOptions" :move="onMove"> 
-          <transition-group name="no" class="list-group" tag="ul">
-            <li class="list-group-item" v-for="element in list2" :key="element.order"> 
-              <i :class="element.fixed? 'fa fa-anchor' : 'glyphicon glyphicon-pushpin'" @click=" element.fixed=! element.fixed" aria-hidden="true"></i>
-              {{element.name}}
-              <span class="badge">{{element.order}}</span>
-            </li> 
-          </transition-group>
-      </draggable>
-    </div>
-
-
-    <div  class="list-group col-md-3">
-      <pre>{{listString}}</pre>
-    </div>
-     <div  class="list-group col-md-3">
-      <pre>{{list2String}}</pre>
-    </div>
-  </div>
+<template lang="pug">
+  .fluid.container
+    .row
+      .col-6
+        draggable.list-group(element="ul" v-model="list" :options="dragOptions1")
+          transition-group(type="transition" :name="'flip-list'")
+            li.list-group-item(v-for="element in list" :key="element.order")
+              .person
+                span.badge.float-left.badge-primary.m-2 {{element.order}}
+                | {{element.name}}
+      .col-6
+        ul
+          li.list-group-item(v-for="element in list2" :key="element.order")
+            | {{element.name}}
+            draggable(element="span" v-model="element.inlist" :options="dragOptions2" @add="onAdd")
+              transition-group.list-group(name="no" tag="ul")
+                li.list-group-item(v-for="subelement in element.inlist" :key="subelement.order")
+                  span.badge.float-left.badge-info.m-2 {{subelement.order}}
+                  span {{subelement.name}}
+    .row
+      .list-group.col-md-6
+        pre.
+          {{listNString}}
+      .list-group.col-md-6
+        pre.
+          {{list2String}}
 </template>
 
 <script>
@@ -57,72 +37,68 @@ export default {
   },
   data () {
     return {
-      list: message.map( (name,index) => {return {name, order: index+1, fixed: false}; }),
-      list2:[],
-      editable:true,
-      isDragging: false,
-      delayedDragging:false
+      list: message.map( (name,index) => {return {name, order: index+1, fixed: false, person: true}; }),
+      list2:[{ name: 'bielany', order: 20, fixed: true, inlist: []}, {name:'śródmieście', order: 21, fixed: true, bucket: true, inlist: []}],
+      listn:[]
     }
   },
   methods:{
     orderList () {
       this.list = this.list.sort((one,two) =>{return one.order-two.order; })
     },
-    onMove ({relatedContext, draggedContext}) {
-      const relatedElement = relatedContext.element;
-      const draggedElement = draggedContext.element;
-      return (!relatedElement || !relatedElement.fixed) && !draggedElement.fixed
+    onAdd (evnt) {
+     window.test = (evnt)
     }
   },
   computed: {
-    dragOptions () {
+    dragOptions1 () {
       return  {
-        animation: 0,
-        group: 'description',
-        disabled: !this.editable,
-        ghostClass: 'ghost'
+        group: {name: 'description', put: 'false'},
+        sort: false,
+        handle:'.badge'
       };
     },
-    listString(){
-      return JSON.stringify(this.list, null, 2);  
+    dragOptions2 () {
+      return  {
+        group: 'description',
+        sort: false,
+        handle:'.badge'
+      };
+    },
+    listNString(){
+      return JSON.stringify(this.listn, null, 2);
     },
     list2String(){
-      return JSON.stringify(this.list2, null, 2);  
-    }
-  },
-  watch: {
-    isDragging (newValue) {
-      if (newValue){
-        this.delayedDragging= true
-        return
-      }
-      this.$nextTick( () =>{
-           this.delayedDragging =false
-      })
+      return JSON.stringify(this.list2, null, 2);
     }
   }
 }
 </script>
 
 <style>
-.flip-list-move {
+
+.no-move {
   transition: transform 0.5s;
 }
 
-.no-move {
-  transition: transform 0s;
+.sortable-ghost {
+  color: #0c0;
+}
+.sortable-chosen {
+  color: #c00;
+  background-color: #c00;
 }
 
-.ghost {
-  opacity: .5;
-  background: #C8EBFB;
+.sortable-drag {
+  color: #00c;
+  background-color: #c00;
 }
 
 .list-group {
   min-height: 20px;
 }
 
-.list-group-item {
+.list-group-item .badge {
   cursor: move;
 }
 
